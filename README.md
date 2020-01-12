@@ -16,7 +16,8 @@ $ git clone https://github.com/eko/docker-symfony.git
 
 Next, put your Symfony application into `symfony` folder and do not forget to add `symfony.localhost` in your `/etc/hosts` file.
 
-Make sure you adjust `database_host` in `parameters.yml` to the database container alias "db"
+Make sure you adjust `database_host` in `parameters.yml` to the database container alias "db" (for Symfony < 4)
+Make sure you adjust `DATABASE_URL` in `env` to the database container alias "db" (for Symfony >= 4)
 
 Then, run:
 
@@ -39,18 +40,22 @@ Here are the `docker-compose` built images:
 * `db`: This is the MySQL database container (can be changed to postgresql or whatever in `docker-compose.yml` file),
 * `php`: This is the PHP-FPM container including the application volume mounted on,
 * `nginx`: This is the Nginx webserver container in which php volumes are mounted too,
-* `elk`: This is a ELK stack container which uses Logstash to collect logs, send them into Elasticsearch and visualize them with Kibana.
+* `elasticsearch`: This is the Elasticsearch server used to store our web server and application logs,
+* `logstash`: This is the Logstash tool from Elastic Stack that allows to read logs and send them into our Elasticsearch server,
+* `kibana`: This is the Kibana UI that is used to render logs and create beautiful dashboards. 
 
 This results in the following running containers:
 
 ```bash
 > $ docker-compose ps
-        Name                       Command               State              Ports
---------------------------------------------------------------------------------------------
-dockersymfony_db_1      docker-entrypoint.sh mysqld      Up      0.0.0.0:3306->3306/tcp
-dockersymfony_elk_1     /usr/bin/supervisord -n -c ...   Up      0.0.0.0:81->80/tcp
-dockersymfony_nginx_1   nginx                            Up      443/tcp, 0.0.0.0:80->80/tcp
-dockersymfony_php_1     php-fpm7 -F                      Up      0.0.0.0:9000->9000/tcp
+             Name                           Command               State                 Ports
+-----------------------------------------------------------------------------------------------------------
+mysql                            docker-entrypoint.sh --def ...   Up      0.0.0.0:3306->3306/tcp, 33060/tcp
+elasticsearch                    /usr/local/bin/docker-entr ...   Up      0.0.0.0:9200->9200/tcp, 9300/tcp
+kibana                           /usr/local/bin/dumb-init - ...   Up      0.0.0.0:81->5601/tcp
+logstash                         /usr/local/bin/docker-entr ...   Up      5044/tcp, 9600/tcp
+nginx                            nginx                            Up      443/tcp, 0.0.0.0:80->80/tcp
+php-fpm                          php-fpm7 -F                      Up      0.0.0.0:9000->9001/tcp
 ```
 
 # Read logs
@@ -66,8 +71,9 @@ You can also use Kibana to visualize Nginx & Symfony logs by visiting `http://sy
 
 # Use xdebug!
 
-To use xdebug change the line `"docker-host.localhost:127.0.0.1"` in docker-compose.yml and replace 127.0.0.1 with your machine ip addres.
-If your IDE default port is not set to 5902 you should do that, too.
+Configure your IDE to use port 5902 for XDebug.
+Docker versions below 18.03.1 don't support the Docker variable `host.docker.internal`.  
+In that case you'd have to swap out `host.docker.internal` with your machine IP address in php-fpm/xdebug.ini.
 
 # Code license
 
