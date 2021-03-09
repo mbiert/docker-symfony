@@ -4,7 +4,7 @@ docker-symfony
 [![Build Status](https://secure.travis-ci.org/eko/docker-symfony.png?branch=master)](http://travis-ci.org/eko/docker-symfony)
 
 
-This is a complete stack for running Symfony 4 (latest version: Flex) into Docker containers using docker-compose tool.
+This is a complete stack for running Symfony 5 (latest version), PHP8 and ELK stack using docker-compose tool.
 
 # Installation
 
@@ -70,6 +70,9 @@ You can access Nginx and Symfony application logs in the following directories o
 You can also use Kibana to visualize Nginx & Symfony logs by visiting `http://symfony.localhost:81`.
 
 # Use xdebug!
+
+Start by updating your `docker-compose.yaml` file with `ENABLE_PHP_XDEBUG: 1` under the `php` service.
+You will need to re-build the php container for this value to take effect.
 
 Configure your IDE to use port 5902 for XDebug.
 Docker versions below 18.03.1 don't support the Docker variable `host.docker.internal`.  
